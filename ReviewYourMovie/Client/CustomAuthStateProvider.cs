@@ -1,16 +1,19 @@
 ﻿using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
 using System.Text.Json;
+using System.Net.Http.Headers;
 
 namespace ReviewYourMovie.Client
 {
     public class CustomAuthStateProvider : AuthenticationStateProvider
     {
         private readonly ILocalStorageService _localStorage;
+        private readonly HttpClient _http;
 
-        public CustomAuthStateProvider(ILocalStorageService localStorage)
+        public CustomAuthStateProvider(ILocalStorageService localStorage, HttpClient http)
         {
             _localStorage = localStorage;
+            _http = http;
         }
 
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
@@ -19,9 +22,12 @@ namespace ReviewYourMovie.Client
 
             var identity = new ClaimsIdentity();
 
+            _http.DefaultRequestHeaders.Authorization = null;
+
             if (!string.IsNullOrEmpty(token))
             {
                 identity = new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt");
+                _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Replace("\"",""));
             }
 
             var user = new ClaimsPrincipal(identity);

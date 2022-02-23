@@ -1,6 +1,7 @@
 ﻿@inject NavigationManager NavigationManager
 @inject ILocalStorageService LocalStorage
 @inject AuthenticationStateProvider AuthStateProvider
+@inject IJSRuntime JSRuntime
 
 <AuthorizeView>
 	<Authorized>
@@ -22,6 +23,7 @@
 	{
 		await LocalStorage.RemoveItemAsync("token");
 		await AuthStateProvider.GetAuthenticationStateAsync();
+		await JSRuntime.InvokeVoidAsync("alert", "You has ben unlogged");
 	}
 
 }

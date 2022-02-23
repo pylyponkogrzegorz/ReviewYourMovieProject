@@ -1,83 +1,31 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace ReviewYourMovie.Server.Controllers
 {
+    [Route("api/[controller]")]
+    [ApiController]
     public class DiscoverMoviesController : Controller
     {
+        private readonly string _requestUri = "https://api.themoviedb.org/3/";
+        private readonly string _apiKey = "078e0acb19610d04a72b899c487240d1";
+
         // GET: DiscoverMoviesController
-        public ActionResult Index()
+        [HttpGet]
+        public async Task <ActionResult<DiscoverMovie>> Index()
         {
-            return View();
-        }
+            var request = new HttpRequestMessage(HttpMethod.Get, $"{_requestUri}discover/movie?api_key={_apiKey}");
+            var client = new HttpClient();
+            HttpResponseMessage response = await client.SendAsync(request);
 
-        // GET: DiscoverMoviesController/Details/5
-        public ActionResult Details(int id)
-        {
-            return View();
-        }
+            var responseString = await response.Content.ReadAsStringAsync();
 
-        // GET: DiscoverMoviesController/Create
-        public ActionResult Create()
-        {
-            return View();
-        }
+            var json = JsonConvert.SerializeObject(responseString);
 
-        // POST: DiscoverMoviesController/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
-        }
+            //var result = response.Content.ReadFromJsonAsync<DiscoverMovie>();
 
-        // GET: DiscoverMoviesController/Edit/5
-        public ActionResult Edit(int id)
-        {
-            return View();
-        }
-
-        // POST: DiscoverMoviesController/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
-        }
-
-        // GET: DiscoverMoviesController/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return View();
-        }
-
-        // POST: DiscoverMoviesController/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+            return Ok(json);
         }
     }
 }

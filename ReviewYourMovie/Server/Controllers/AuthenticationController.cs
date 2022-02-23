@@ -1,6 +1,15 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ReviewYourMovie.Server.Services;
 using ReviewYourMovie.Shared.Models;
+using BCrypt.Net;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using ReviewYourMovie.Server.Context;
+using System.Security.Claims;
+using ReviewYourMovie.Server.Managers;
+using Blazored.LocalStorage;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -10,39 +19,100 @@ namespace ReviewYourMovie.Server.Controllers
     [ApiController]
     public class AuthenticationController : ControllerBase
     {
-        private static User user = new();
-        private static UserHashPassword userHash = new();
+        private readonly UserContext _context;
 
-
-        // POST api/<AuthenticationController>
-        [HttpPost("register")]
-        public async Task<ActionResult<UserHashPassword>> Register(UserLoginDto login)
+        public AuthenticationController(UserContext context)
         {
-            HashPassword.CreatePasswordHash(login.Password, out byte[] passwordHash, out byte[] passwordSalt);
+            _context = context;
+        }
 
-            userHash.Username = login.Username;
-            userHash.PasswordHash = passwordHash;
-            userHash.PasswordSalt = passwordSalt;
+        private static User user = new();
 
-            return Ok(userHash);
+        [HttpPost]
+        public async Task<ActionResult<User>> Authenticate(UserLoginDto userDto)
+        {
+            var userFromDb = await _context.Users.FindAsync(userDto.Username);
+
+            return Ok(userFromDb);
+        }
+
+
+        // POST api/Authentication/register
+        [HttpPost("register")]
+        public async Task<ActionResult<User>> Register(UserLoginDto login)
+        {
+            string passwordHash = BCrypt.Net.BCrypt.HashPassword(login.Password);
+
+            //var token = TokenManager.GenerateAccessToken(user);
+
+            user.Username = login.Username;
+            user.Password = passwordHash;
+            user.LastLogonTime = DateTime.Now;
+            user.UserRoleId = 3;
+            user.RegisterTime = DateTime.Now;
+            user.Token = String.Empty;
+            user.FirstName = String.Empty;
+            user.LastName = String.Empty;
+            user.EmailAddress = String.Empty;
+
+            var userFromDb = await _context.Users.FirstOrDefaultAsync(x => x.Username == login.Username);
+
+            if (userFromDb != null)
+            {
+                return NotFound("This username is taken");
+            }
+
+            user.RegisterComplete = true;
+
+            _context.Users.Add(user);
+
+            await _context.SaveChangesAsync();
+
+            return Ok("Registered");
         }
 
         // POST api/<AuthenticationController>
-        [HttpPost/*("login")*/]
+        [HttpPost("login")]
         public async Task<ActionResult<string>> Login(UserLoginDto login)
         {
-            string token = "eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTUxMiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiVG9ueSBTdGFyayIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6Iklyb24gTWFuIiwiZXhwIjozMTY4NTQwMDAwfQ.IbVQa1lNYYOzwso69xYfsMOHnQfO3VLvVqV2SOXS7sTtyyZ8DEf5jmmwz2FGLJJvZnQKZuieHnmHkg7CGkDbvA";
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Username == login.Username);
+
+            if (user == null)
+            {
+                return NotFound("There is no such User.");
+            }
+
+            var validPassword = BCrypt.Net.BCrypt.Verify(login.Password, user.Password);
+
+            if (!validPassword)
+            {
+                
+                return NotFound("Bad password");
+            }
+
+            var token = TokenManager.GenerateAccessToken(user);
+
+            var refreshToken = TokenManager.GenerateRefreshToken(user);
+
+            var tokenToDb = JsonConvert.SerializeObject(refreshToken);
+
+            user.Token.Remove(0);
+
+            user.Token = tokenToDb;
+
+            await _context.SaveChangesAsync();
 
             return token;
+        }
 
-            //if(userHash.Username != login.Username)
-            //{
-            //    return BadRequest("User not found");
-            //}
+        private string CreateToken(User user)
+        {
+            List<Claim> claims = new();
+            {
+                new Claim(ClaimTypes.Name, user.Username);
+            }
 
-            //return Ok("token");
-
-            //return Ok(userHash);
+            return string.Empty;
         }
 
     }

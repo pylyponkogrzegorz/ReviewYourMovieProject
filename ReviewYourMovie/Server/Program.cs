@@ -2,6 +2,10 @@ global using ReviewYourMovie.Shared;
 global using ReviewYourMovie.Shared.Models;
 global using ReviewYourMovie.Server.Models;
 using Microsoft.AspNetCore.ResponseCompression;
+using ReviewYourMovie.Server.Context;
+using Microsoft.EntityFrameworkCore;
+using System.Configuration;
+using ReviewYourMovie.Server.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +17,8 @@ builder.Services.AddRazorPages();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddDbContext<UserContext>(Options => Options.UseSqlServer("server=LAPTOP-ODHDV0AR;database=UsersDb;trusted_connection=true"));
 
 var app = builder.Build();
 
@@ -30,6 +36,8 @@ else
     app.UseHsts();
 }
 
+ApiHelper.InitializeClient();
+
 app.UseSwagger();
 
 app.UseHttpsRedirection();
@@ -45,5 +53,7 @@ app.UseAuthorization();
 app.MapRazorPages();
 app.MapControllers();
 app.MapFallbackToFile("index.html");
+
+
 
 app.Run();

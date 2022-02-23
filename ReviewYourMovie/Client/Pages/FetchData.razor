@@ -7,7 +7,7 @@
 
 <p>This component demonstrates fetching data from the server.</p>
 
-@if (forecasts == null)
+@*@if ( == null)
 {
     <p><em>Loading...</em></p>
 }
@@ -33,14 +33,9 @@ else
                 </tr>
             }
         </tbody>
-    </table>
+    </table>*@
 }
 
 @code {
-    private WeatherForecast[]? forecasts;
-
-    protected override async Task OnInitializedAsync()
-    {
-        forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("api/WeatherForecast");
-    }
+    
 }

@@ -1,0 +1,54 @@
+﻿@page "/register"
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Manager
+@using ReviewYourMovie.Shared.Models
+@inject HttpClient Http
+@inject AuthenticationStateProvider AuthStateProvider
+@inject ILocalStorageService LocalStorage
+
+<div class="card d-flex justify-content-center">
+    <h4 class="card-header">Register</h4>
+    <div class="card-body">
+        <EditForm Model="@user" OnValidSubmit="OnValidSubmit">
+            <DataAnnotationsValidator />
+            <div class="form-group">
+                <label>Username</label>
+                <InputText @bind-Value="user.Username" class="form-control" />
+                <ValidationMessage For="@(() => user.Username)" />
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <InputText @bind-Value="user.Password" type="password" class="form-control" />
+                <ValidationMessage For="@(() => user.Password)" />
+            </div>
+            <button disabled="@loading" class="btn btn-primary">
+                @if (loading) 
+                {
+                    <span class="spinner-border spinner-border-sm mr-1"></span>
+                }
+                Register
+            </button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private UserLoginDto user = new();
+    private bool loading;
+
+    private async void OnValidSubmit()
+    {
+        var result = await Http.PostAsJsonAsync("https://localhost:44386/api/Authentication/register", user);
+        var response = await result.Content.ReadAsStringAsync();
+
+        if (result.IsSuccessStatusCode)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", response);
+            Manager.NavigateTo("login");
+        }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("alert", response);
+        }
+    }
+}

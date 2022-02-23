@@ -1,4 +1,6 @@
 ﻿@page "/"
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Review Your Movie Service</PageTitle>
 
@@ -8,10 +10,52 @@ Welcome to your new app.
 
 How are You?
 
+@if (@movies == null)
+{
+	<p><em>Loading...</em></p>
+}
+else
+{
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Title</th>
+				<th>Original title</th>
+				<th>Release Date</th>
+				<th>Popularity</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var movie in movies.Results)
+			{
+				<tr>
+					<td>@movie.title</td>
+					<td>@movie.original_title</td>
+					<td>@movie.release_date</td>
+					<td>@movie.popularity</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
 <SurveyPrompt Title="How is Blazor working for you?" />
 
 @code {
 
+	private DiscoverMovie? movies;
+
+	private string requestUri = "https://localhost:44386/api/DiscoverMovies";
+
+	protected override async Task OnInitializedAsync()
+	{
+		movies = await Http.GetFromJsonAsync<DiscoverMovie>(requestUri);
+
+		if (movies.Results == null)
+		{
+			await JSRuntime.InvokeVoidAsync("alert", movies);
+		}
+
+	}
 
 
 }

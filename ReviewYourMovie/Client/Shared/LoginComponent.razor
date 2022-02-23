@@ -2,46 +2,53 @@
 @inject HttpClient Http
 @inject AuthenticationStateProvider AuthStateProvider
 @inject ILocalStorageService LocalStorage
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Manager
+
 
 <div class="card d-flex justify-content-center">
-    <h4 class="card-header">Login</h4>
-    <div class="card-body">
-        <EditForm Model="@user" OnValidSubmit="OnValidSubmit">
-            <DataAnnotationsValidator />
-            <div class="form-group">
-                <label>Username</label>
-                <InputText @bind-Value="user.Username" class="form-control" />
-                <ValidationMessage For="@(() => user.Username)" />
-            </div>
-            <div class="form-group">
-                <label>Password</label>
-                <InputText @bind-Value="user.Password" type="password" class="form-control" />
-                <ValidationMessage For="@(() => user.Password)" />
-            </div>
-            <button disabled="@loading" class="btn btn-primary">
-                @if (loading) 
-                {
-                    <span class="spinner-border spinner-border-sm mr-1"></span>
-                }
-                Login
-            </button>
-            <NavLink href="account/register" class="btn btn-link">Register</NavLink>
-        </EditForm>
-    </div>
+	<h4 class="card-header">Login</h4>
+	<div class="card-body">
+		<EditForm Model="@user" OnValidSubmit="OnValidSubmit">
+			<DataAnnotationsValidator />
+			<div class="form-group">
+				<label>Username</label>
+				<InputText @bind-Value="user.Username" class="form-control" />
+				<ValidationMessage For="@(() => user.Username)" />
+			</div>
+			<div class="form-group">
+				<label>Password</label>
+				<InputText @bind-Value="user.Password" type="password" class="form-control" />
+				<ValidationMessage For="@(() => user.Password)" />
+			</div>
+			<button class="btn btn-primary">Login</button>
+			<NavLink href="register" class="btn btn-link">Register</NavLink>
+		</EditForm>
+	</div>
 </div>
 
 @code {
-    private UserLoginDto user = new();
-    private bool loading;
+	private UserLoginDto user = new();
+	private bool loading;
 
 
 
-    private async void OnValidSubmit()
-    {
-        var result = await Http.PostAsJsonAsync("api/Authentication", user);
-        var token = await result.Content.ReadAsStringAsync();
-        Console.WriteLine(token);
-        await LocalStorage.SetItemAsync("token", token);
-        await AuthStateProvider.GetAuthenticationStateAsync();
-    }
+	private async void OnValidSubmit()
+	{
+		var result = await Http.PostAsJsonAsync("api/Authentication/login", user);
+		var token = await result.Content.ReadAsStringAsync();
+
+		if (result.IsSuccessStatusCode)
+		{
+			await LocalStorage.SetItemAsync("token", token);
+			await AuthStateProvider.GetAuthenticationStateAsync();
+			await JSRuntime.InvokeVoidAsync("alert", "Logged succesfully");
+			Manager.NavigateTo("/");
+		}
+		else
+		{
+			await JSRuntime.InvokeVoidAsync("alert", token);
+		}
+
+	}
 }
