@@ -4,58 +4,67 @@
 
 <PageTitle>Review Your Movie Service</PageTitle>
 
-<h1>Hello</h1>
+<h1>Recent Movies</h1>
 
-Welcome to your new app.
-
-How are You?
+Here You can see newest movies
 
 @if (@movies == null)
 {
-	<p><em>Loading...</em></p>
+	<div class="spinner-border" role="status">
+		<span class="visually-hidden">Loading...</span>
+	</div>
 }
 else
 {
-	<table class="table">
-		<thead>
-			<tr>
-				<th>Title</th>
-				<th>Original title</th>
-				<th>Release Date</th>
-				<th>Popularity</th>
-			</tr>
-		</thead>
-		<tbody>
-			@foreach (var movie in movies.Results)
-			{
-				<tr>
-					<td>@movie.title</td>
-					<td>@movie.original_title</td>
-					<td>@movie.release_date</td>
-					<td>@movie.popularity</td>
-				</tr>
-			}
-		</tbody>
-	</table>
+	<div class="row">
+		@foreach (var movie in movies.Results)
+		{
+			<div class="col-sm-2">
+				<div class="card text-center" style="width: 16rem;">
+					<img src="@posterPath/@movie.poster_path" class="card-img-top" alt="@movie.title">
+					<div class="card-body">
+						<h5 class="card-title">@movie.title</h5>
+						<p class="card-text">@movie.overview.Substring(0, Math.Min(movie.overview.Length, 100))</p>
+						<a href="MovieDetails" class="btn btn-primary">Show movie details</a>
+					</div>
+				</div>
+			</div>
+		}
+	</div>
+
+
 }
-<SurveyPrompt Title="How is Blazor working for you?" />
+
 
 @code {
 
 	private DiscoverMovie? movies;
 
-	private string requestUri = "https://localhost:44386/api/DiscoverMovies";
+	private string posterPath = "https://image.tmdb.org/t/p/original";
+
+	private string requestUri = "https://localhost:44386/api/DiscoverMovies/page";
+
+	private string page = "1";
 
 	protected override async Task OnInitializedAsync()
 	{
-		movies = await Http.GetFromJsonAsync<DiscoverMovie>(requestUri);
+		//movies = await Http.GetFromJsonAsync<DiscoverMovie>(requestUri);
+
+		var json = JsonConvert.SerializeObject(page);
+
+		movies = new()
+			{
+				Page = Convert.ToInt32(page)
+			};
+
+		var response = await Http.PostAsJsonAsync<DiscoverMovie>(requestUri, movies);
+
+		movies = await response.Content.ReadFromJsonAsync<DiscoverMovie>();
 
 		if (movies.Results == null)
 		{
 			await JSRuntime.InvokeVoidAsync("alert", movies);
 		}
-
 	}
-
 
 }

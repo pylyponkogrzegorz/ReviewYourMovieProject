@@ -47,6 +47,8 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseCors(policy => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+
 app.UseAuthentication();
 app.UseAuthorization();
 

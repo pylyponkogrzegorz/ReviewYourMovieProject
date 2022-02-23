@@ -13,17 +13,31 @@ namespace ReviewYourMovie.Server.Controllers
 
         // GET: DiscoverMoviesController
         [HttpGet]
-        public async Task <ActionResult<DiscoverMovie>> Index()
+        public async Task<ActionResult<DiscoverMovie>> Index()
         {
+            //var page = &page = 8;
+
             var request = new HttpRequestMessage(HttpMethod.Get, $"{_requestUri}discover/movie?api_key={_apiKey}");
             var client = new HttpClient();
             HttpResponseMessage response = await client.SendAsync(request);
 
-            var responseString = await response.Content.ReadAsStringAsync();
+            var json = await response.Content.ReadAsStringAsync();
 
-            var json = JsonConvert.SerializeObject(responseString);
+            return Ok(json);
+        }
 
-            //var result = response.Content.ReadFromJsonAsync<DiscoverMovie>();
+        // POST: api/DiscoverMoviesController/page
+        [HttpPost("page")]
+        public async Task<ActionResult> PostPage()
+        {
+            var page = HttpContext.Request.Form["Page"];
+
+            var request = new HttpRequestMessage(HttpMethod.Get, 
+                $"{_requestUri}discover/movie?api_key={_apiKey}&page={page}");
+            var client = new HttpClient();
+            HttpResponseMessage response = await client.SendAsync(request);
+
+            var json = await response.Content.ReadAsStringAsync();
 
             return Ok(json);
         }

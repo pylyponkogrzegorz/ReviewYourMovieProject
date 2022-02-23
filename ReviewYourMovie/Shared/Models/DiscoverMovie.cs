@@ -6,7 +6,7 @@ namespace ReviewYourMovie.Shared
 {
     public class DiscoverMovie
     {
-        public int Page { get; set; }
+        public int Page { get; set; } = 1;
         public Result[] Results { get; set; }
         public int Total_pages { get; set; }
         public int Total_results { get; set; }
