@@ -27,8 +27,8 @@ else
 	<div class="row">
 		@foreach (var movie in movies.Results)
 		{
-			<div class="col-sm-3">
-				<div class="card text-center" style="width: 22rem;">
+			<div class="col-lg-2 col-md-3 col-sm-4">
+				<div class="card text-center">
 					<img src="@posterPath/@movie.poster_path" class="card-img-top" alt="@movie.title">
 					<div class="card-body">
 						<h5 class="card-title">@movie.title</h5>
@@ -40,11 +40,12 @@ else
 			</div>
 		}
 	</div>
+	<p></p><p></p><p></p>
 
-	<div class="btn-group d-flex content-center" role="group" aria-label="Basic example">
-		<button disabled=@IsPageNotToLow @onclick="Previous" type="button" class="btn btn-primary">Previous</button>
-		<button type="button" class="btn btn-primary">@pageRequest</button>
-		<button disabled=@IsPageNotToHigh @onclick="Next" type="button" class="btn btn-primary">Next</button>
+	<div class="btn-group d-grid gap-2 d-md-flex justify-content-md-center" role="group" aria-label="Basic example">
+		<div><button disabled=@IsPageNotToLow @onclick="Previous" type="button" class="btn btn-primary btn-lg">Previous</button></div>
+		<div><button type="button" class="btn btn-primary btn-lg">@pageRequest</button></div>
+		<div><button disabled=@IsPageNotToHigh @onclick="Next" type="button" class="btn btn-primary btn-lg">Next</button></div>
 	</div>
 }
 
@@ -125,12 +126,11 @@ else
 		await OnInitializedAsync();
 	}
 
-	private int GetMovieDetails(MouseEventArgs e, int id)
+	private void GetMovieDetails(MouseEventArgs e, int id)
 	{
-		MovieDetailsPage details = new();
-		details.GetId(id);
-		Manager.NavigateTo("MovieDetailsPage");
-		return id;
+		Manager.NavigateTo($"MovieDetailsPage/{id}");
+		//MovieDetailsPage details = new();
+		//details.GetId(id);
 	}
 
 	private async void DiscoverMovies()
