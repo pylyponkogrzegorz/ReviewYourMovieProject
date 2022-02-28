@@ -1,12 +1,20 @@
 ﻿@page "/"
 @inject HttpClient Http
 @inject IJSRuntime JSRuntime
+@inject NavigationManager Manager
 
 <PageTitle>Review Your Movie Service</PageTitle>
 
 <h1>Recent Movies</h1>
 
-Here You can see newest movies
+<h3>Here You can see newest movies</h3>
+<p></p>
+
+<div class="mb-3">
+	<input @bind-value=query type="search" class="form-control" id="SearchForMovie" placeholder="Movie Name">
+	<p></p>
+	<button @onclick="OnInitializedAsync" class="btn btn-primary">Search</button>
+</div>
 
 @if (@movies == null)
 {
@@ -19,20 +27,25 @@ else
 	<div class="row">
 		@foreach (var movie in movies.Results)
 		{
-			<div class="col-sm-2">
-				<div class="card text-center" style="width: 16rem;">
+			<div class="col-sm-3">
+				<div class="card text-center" style="width: 22rem;">
 					<img src="@posterPath/@movie.poster_path" class="card-img-top" alt="@movie.title">
 					<div class="card-body">
 						<h5 class="card-title">@movie.title</h5>
+						<h6 class="card-subtitle mb-2 text-muted">@movie.release_date</h6>
 						<p class="card-text">@movie.overview.Substring(0, Math.Min(movie.overview.Length, 100))</p>
-						<a href="MovieDetails" class="btn btn-primary">Show movie details</a>
+						<button @onclick="@(e => GetMovieDetails(e, movie.id))" class="btn btn-primary">Show movie details</button>
 					</div>
 				</div>
 			</div>
 		}
 	</div>
 
-
+	<div class="btn-group d-flex content-center" role="group" aria-label="Basic example">
+		<button disabled=@IsPageNotToLow @onclick="Previous" type="button" class="btn btn-primary">Previous</button>
+		<button type="button" class="btn btn-primary">@pageRequest</button>
+		<button disabled=@IsPageNotToHigh @onclick="Next" type="button" class="btn btn-primary">Next</button>
+	</div>
 }
 
 
@@ -40,31 +53,121 @@ else
 
 	private DiscoverMovie? movies;
 
+	private MouseEventArgs ev;
+
+	string query;
+
+	bool IsPageNotToLow;
+	bool IsPageNotToHigh;
+
 	private string posterPath = "https://image.tmdb.org/t/p/original";
 
-	private string requestUri = "https://localhost:44386/api/DiscoverMovies/page";
+	private string requestUri = "https://localhost:44386/api/DiscoverMovies";
 
-	private string page = "1";
+	private int pageRequest = 1;
 
 	protected override async Task OnInitializedAsync()
 	{
-		//movies = await Http.GetFromJsonAsync<DiscoverMovie>(requestUri);
+		if (!string.IsNullOrEmpty(query))
+		{
+			GetMovies(ev, query);
+		}
+		else
+		{
+			DiscoverMovies();
+		}
 
-		var json = JsonConvert.SerializeObject(page);
+	}
 
-		movies = new()
-			{
-				Page = Convert.ToInt32(page)
-			};
 
-		var response = await Http.PostAsJsonAsync<DiscoverMovie>(requestUri, movies);
+
+	private void SetButtonsState()
+	{
+		if (pageRequest < 2)
+		{
+			IsPageNotToLow = true;
+		}
+		else
+		{
+			IsPageNotToLow = false;
+		}
+		if (pageRequest > 499)
+		{
+			IsPageNotToHigh = true;
+		}
+		else
+		{
+			IsPageNotToHigh = false;
+		}
+	}
+
+	private async void Previous()
+	{
+		pageRequest -= 1;
+
+		await OnInitializedAsync();
+	}
+
+	private async void SelectPage(KeyboardEventArgs e, int pageNumber)
+	{
+		if (pageNumber > 1 && pageNumber < 500)
+		{
+			pageRequest = pageNumber;
+		}
+		SetButtonsState();
+		await OnInitializedAsync();
+	}
+
+	private async void Next()
+	{
+		pageRequest += 1;
+
+		await OnInitializedAsync();
+	}
+
+	private int GetMovieDetails(MouseEventArgs e, int id)
+	{
+		MovieDetailsPage details = new();
+		details.GetId(id);
+		Manager.NavigateTo("MovieDetailsPage");
+		return id;
+	}
+
+	private async void DiscoverMovies()
+	{
+		var response = await Http.PostAsJsonAsync($"{requestUri}/page", pageRequest);
 
 		movies = await response.Content.ReadFromJsonAsync<DiscoverMovie>();
 
-		if (movies.Results == null)
+		if (movies?.Results == null)
 		{
 			await JSRuntime.InvokeVoidAsync("alert", movies);
 		}
+
+		SetButtonsState();
+		StateHasChanged();
+	}
+
+	private async void GetMovies(MouseEventArgs e, string query)
+	{
+		var pageReq = pageRequest.ToString();
+
+		var dictionary = new Dictionary<string, string>();
+		dictionary.Add("page", pageReq);
+		dictionary.Add("query", query);
+
+		var json = JsonConvert.SerializeObject(dictionary);
+
+		var response = await Http.PostAsJsonAsync($"{requestUri}/queryandpage", json);
+
+		movies = await response.Content.ReadFromJsonAsync<DiscoverMovie>();
+
+		if (movies?.Results == null)
+		{
+			await JSRuntime.InvokeVoidAsync("alert", movies);
+		}
+
+		StateHasChanged();
 	}
 
 }

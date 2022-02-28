@@ -1,0 +1,50 @@
+﻿@page "/MovieDetailsPage"
+
+<h3>MovieDetailsPage</h3>
+
+@if (@movie == null)
+{
+	<div class="spinner-border" role="status">
+		<span class="visually-hidden">Loading...</span>
+	</div>
+}
+else
+{
+	<div class="row">
+		
+			<div class="col-sm-2">
+				<div class="card text-center" style="width: 16rem;">
+					<img src="@posterPath/@movie.Poster_path" class="card-img-top" alt="@movie.Title">
+					<div class="card-body">
+						<h5 class="card-title">@movie.Title</h5>
+						<h6 class="card-subtitle mb-2 text-muted">@movie.Release_date</h6>
+						<p class="card-text">@movie.Overview</p>
+					</div>
+				</div>
+			</div>
+		
+	</div>
+}
+
+@code {
+
+	private MovieDetails movie;
+
+	private HttpClient Http = new();
+
+	private string posterPath = "https://image.tmdb.org/t/p/original";
+
+	private static string requestUri = "https://localhost:44386/api/MovieDetails/id";
+
+
+
+	public async void GetId(int id)
+	{
+		var response = await Http.PostAsJsonAsync(requestUri, id);
+
+		movie = await response.Content.ReadFromJsonAsync<MovieDetails>();
+
+		//StateHasChanged();
+	}
+
+}

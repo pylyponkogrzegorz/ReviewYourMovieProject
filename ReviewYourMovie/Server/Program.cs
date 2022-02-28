@@ -1,11 +1,11 @@
 global using ReviewYourMovie.Shared;
 global using ReviewYourMovie.Shared.Models;
 global using ReviewYourMovie.Server.Models;
+global using ReviewYourMovie.Server.Helpers;
 using Microsoft.AspNetCore.ResponseCompression;
 using ReviewYourMovie.Server.Context;
 using Microsoft.EntityFrameworkCore;
 using System.Configuration;
-using ReviewYourMovie.Server.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
