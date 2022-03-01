@@ -30,7 +30,7 @@ namespace ReviewYourMovie.Server.Managers
                  .Decode<IDictionary<string, object>>(token);
         }
 
-        public static (string key, string jwt) GenerateRefreshToken(User user)
+        public static (string refreshToken, string jwt) GenerateRefreshToken(User user)
         {
             var randomNumber = new byte[32];
             using (var rng = RandomNumberGenerator.Create())

@@ -86,33 +86,25 @@ namespace ReviewYourMovie.Server.Controllers
 
             if (!validPassword)
             {
-                
                 return NotFound("Bad password");
             }
 
-            var token = TokenManager.GenerateAccessToken(user);
-
             var refreshToken = TokenManager.GenerateRefreshToken(user);
-
-            var tokenToDb = JsonConvert.SerializeObject(refreshToken);
 
             user.Token.Remove(0);
 
-            user.Token = tokenToDb;
+            user.Token = refreshToken.refreshToken;
+
+            var token = TokenManager.GenerateAccessToken(user);
+
+            //var tokenToDb = JsonConvert.SerializeObject(refreshToken);
+
+
+            //user.Token = tokenToDb;
 
             await _context.SaveChangesAsync();
 
             return token;
-        }
-
-        private string CreateToken(User user)
-        {
-            List<Claim> claims = new();
-            {
-                new Claim(ClaimTypes.Name, user.Username);
-            }
-
-            return string.Empty;
         }
 
     }
