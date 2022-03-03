@@ -8,7 +8,6 @@ namespace ReviewYourMovie.Server.Controllers
     public class MovieDetailsController : ControllerBase
     {
         private readonly string _requestUri = "https://api.themoviedb.org/3/";
-        private readonly string _apiKey = "078e0acb19610d04a72b899c487240d1";
 
 
         // POST: api/DiscoverMoviesController/page

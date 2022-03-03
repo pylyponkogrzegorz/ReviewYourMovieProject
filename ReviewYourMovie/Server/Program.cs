@@ -9,17 +9,25 @@ using System.Configuration;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using ReviewYourMovie.Server.Services;
+using Microsoft.Extensions.Options;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(x =>
+                x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 builder.Services.AddRazorPages();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddSingleton<UserContext>(sp => sp.GetRequiredService<IOptions<UserContext>>().Value);
+
+builder.Services.AddSingleton<UserService>();
 
 builder.Services.AddDbContext<UserContext>(Options => Options.UseSqlServer("server=LAPTOP-ODHDV0AR;database=UsersDb;trusted_connection=true"));
 
@@ -30,8 +38,8 @@ JwtBearerOptions options(JwtBearerOptions jwtBearerOptions, string audience)
     jwtBearerOptions.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes("Superlongsupersecret!")),
-        ValidIssuer = "JwtExample",
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes("SuperUltraExtraLongSuperSecret!")),
+        ValidIssuer = "ReviewYourMovie",
         ValidateAudience = true,
         ValidAudience = audience,
         ValidateLifetime = true, //validate the expiration and not before values in the token

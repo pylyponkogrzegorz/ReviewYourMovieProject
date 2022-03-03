@@ -38,7 +38,7 @@
 
     private async void OnValidSubmit()
     {
-        var result = await Http.PostAsJsonAsync("https://localhost:44386/api/Authentication/register", user);
+        var result = await Http.PostAsJsonAsync("https://localhost:44386/api/Token/register", user);
         var response = await result.Content.ReadAsStringAsync();
 
         if (result.IsSuccessStatusCode)

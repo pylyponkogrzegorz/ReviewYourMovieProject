@@ -9,8 +9,7 @@ namespace ReviewYourMovie.Server.Managers
 {
     public static class TokenManager
     {
-        private static readonly string _secret = "Superlongsupersecret!";
-        private static List<string> RefreshToken;
+        private static readonly string _secret = "SuperUltraExtraLongSuperSecret!";
 
         public static string GenerateAccessToken(User user)
         {
@@ -18,7 +17,9 @@ namespace ReviewYourMovie.Server.Managers
                 .WithAlgorithm(new HMACSHA256Algorithm())
                 .WithSecret(Encoding.ASCII.GetBytes(_secret))
                 .AddClaim("exp", DateTimeOffset.UtcNow.AddMinutes(10).ToUnixTimeSeconds())
-                .AddClaim("username", user.Username)
+                .AddClaim("Name", user.Username)
+                .Issuer("ReviewYourMovie")
+                .Audience("access")
                 .Encode();
         }
 
@@ -46,7 +47,9 @@ namespace ReviewYourMovie.Server.Managers
                 .WithSecret(_secret)
                 .AddClaim("exp", DateTimeOffset.UtcNow.AddHours(4).ToUnixTimeSeconds())
                 .AddClaim("refresh", randomString)
-                .AddClaim("username", user.Username)
+                .AddClaim("Name", user.Username)
+                .Issuer("ReviewYourMovie")
+                .Audience("access")
                 .Encode();
 
             return (randomString, jwt);

@@ -10,8 +10,7 @@ using ReviewYourMovie.Server.Context;
 using System.Security.Claims;
 using ReviewYourMovie.Server.Managers;
 using Blazored.LocalStorage;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+using Microsoft.AspNetCore.Authorization;
 
 namespace ReviewYourMovie.Server.Controllers
 {
@@ -96,11 +95,6 @@ namespace ReviewYourMovie.Server.Controllers
             user.Token = refreshToken.refreshToken;
 
             var token = TokenManager.GenerateAccessToken(user);
-
-            //var tokenToDb = JsonConvert.SerializeObject(refreshToken);
-
-
-            //user.Token = tokenToDb;
 
             await _context.SaveChangesAsync();
 

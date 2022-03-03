@@ -163,8 +163,12 @@ namespace ReviewYourMovie.Server.Context
             {
                 entity.ToTable("users");
 
+                //entity.Property(e => e.UserId)
+                //    .ValueGeneratedNever()
+                //    .UseIdentityColumn(1,1)
+                //    .HasColumnName("user_id");
+                
                 entity.Property(e => e.UserId)
-                    .ValueGeneratedNever()
                     .HasColumnName("user_id");
 
                 entity.Property(e => e.EmailAddress)

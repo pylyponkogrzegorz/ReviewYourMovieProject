@@ -1,100 +1,154 @@
-﻿//using ReviewYourMovie.Server.Context;
-//using
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using ReviewYourMovie.Server.Context;
+using ReviewYourMovie.Server.Models;
+using ReviewYourMovie.Server.Managers;
+using System.Security.Claims;
 
-//namespace ReviewYourMovie.Server.Services
-//{
-//    public class UserService
-//    {
-//        private readonly UserContext _context;
+namespace ReviewYourMovie.Server.Services
+{
+    public class UserService
+    {
+        private readonly UserContext _context;
 
-//        public UserService(UserContext context)
-//        {
-//            _context = context;
-//        }
+        public UserService(UserContext context)
+        {
+            _context = context;
+        }
 
-//        public List<User> Get() =>
-//            _context.Users.Find(user => true).ToList();
+        private static User userToDb;
 
-//        public User Get(string id) =>
-//            _users.Find<User>(user => user.Id == id).FirstOrDefault();
+        public List<User> Get() =>
+            _context.Users.Where(user => true).ToList();
 
-//        public User Create(User user)
-//        {
-//            _users.InsertOne(user);
-//            return user;
-//        }
+        public User Get(string id) =>
+            _context.Users.FirstOrDefault<User>(user => user.UserId == Convert.ToInt32(id));
 
-//        public Tokens Login(Authentication authentication)
-//        {
-//            User user = _users.Find<User>(u => u.Username == authentication.Username).FirstOrDefault();
+        public User Create(User user)
+        {
+            _context.Users.Add(user);
+            return user;
+        }
 
-//            bool validPassword = user.Password == authentication.Password;
+        public async Task<ActionResult<string>> Register(UserLoginDto login)
+        {
+            string passwordHash = BCrypt.Net.BCrypt.HashPassword(login.Password);
 
-//            if (validPassword)
-//            {
-//                var refreshToken = TokenManager.GenerateRefreshToken(user);
+            userToDb = new()
+            {
+                Username = login.Username,
+                Password = passwordHash,
+                LastLogonTime = DateTime.Now,
+                UserRoleId = 3,
+                RegisterTime = DateTime.Now,
+                Token = String.Empty,
+                FirstName = String.Empty,
+                LastName = String.Empty,
+                EmailAddress = String.Empty,
+            };
 
-//                if (user.RefreshTokens == null)
-//                    user.RefreshTokens = new List<string>();
+            var userFromDb = await _context.Users.FirstOrDefaultAsync(x => x.Username == login.Username);
 
-//                user.RefreshTokens.Add(refreshToken.refreshToken);
+            if (userFromDb != null)
+            {
+                throw new System.Exception("Username is taken");
+            }
 
-//                _users.ReplaceOne(u => u.Id == user.Id, user);
+            userToDb.RegisterComplete = true;
 
-//                return new Tokens
-//                {
-//                    AccessToken = TokenManager.GenerateAccessToken(user),
-//                    RefreshToken = refreshToken.jwt
-//                };
-//            }
-//            else
-//            {
-//                throw new System.Exception("Username or password incorrect");
-//            }
-//        }
+            await _context.Users.AddAsync(userToDb);
 
-//        public Tokens Refresh(Claim userClaim, Claim refreshClaim)
-//        {
-//            User user = _users.Find<User>(x => x.Username == userClaim.Value).FirstOrDefault();
+            await _context.SaveChangesAsync();
 
-//            if (user == null)
-//                throw new System.Exception("User doesn't exist");
+            return "Registered";
 
-//            if (user.RefreshTokens == null)
-//                user.RefreshTokens = new List<string>();
+        }
 
-//            string token = user.RefreshTokens.FirstOrDefault(x => x == refreshClaim.Value);
+        public async Task<ActionResult<string>> Login(UserLoginDto authentication)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync<User>(u => u.Username == authentication.Username);
 
-//            if (token != null)
-//            {
-//                var refreshToken = TokenManager.GenerateRefreshToken(user);
+            bool validPassword = BCrypt.Net.BCrypt.Verify(authentication.Password, user.Password);
 
-//                user.RefreshTokens.Add(refreshToken.refreshToken);
+            if (validPassword)
+            {
+                var refreshToken = TokenManager.GenerateRefreshToken(user);
 
-//                user.RefreshTokens.Remove(token);
+                user.Token.Remove(0);
 
-//                _users.ReplaceOne(u => u.Id == user.Id, user);
+                user.Token = refreshToken.refreshToken;
 
-//                return new Tokens
-//                {
-//                    AccessToken = TokenManager.GenerateAccessToken(user),
-//                    RefreshToken = refreshToken.jwt
-//                };
-//            }
-//            else
-//            {
-//                throw new System.Exception("Refresh token incorrect");
-//            }
-//        }
+                await _context.SaveChangesAsync();
 
-//        public void Update(string id, User userIn) =>
-//            _users.ReplaceOne(user => user.Id == id, userIn);
+                var token = TokenManager.GenerateAccessToken(user);
 
-//        public void Remove(User userIn) =>
-//            _users.DeleteOne(user => user.Id == userIn.Id);
+                return token;
 
-//        public void Remove(string id) =>
-//            _users.DeleteOne(user => user.Id == id);
-//    }
-//}
-//}
+                //return new Tokens
+                //{
+                //    AccessToken = TokenManager.GenerateAccessToken(user),
+                //    RefreshToken = refreshToken.jwt
+                //};
+            }
+            else
+            {
+                throw new System.Exception("Username or password incorrect");
+            }
+        }
+
+        public async Task<ActionResult<Tokens>> Refresh(Claim userClaim, Claim refreshClaim)
+        {
+            User user = await _context.Users.FirstOrDefaultAsync<User>(x => x.Username == userClaim.Value);
+
+            if (user == null)
+                throw new System.Exception("User doesn't exist");
+
+            string token = user.Token = refreshClaim.Value;
+
+            if (token != null)
+            {
+                var refreshToken = TokenManager.GenerateRefreshToken(user);
+
+                user.Token.Remove(0);
+
+                user.Token = refreshToken.refreshToken;
+
+                await _context.SaveChangesAsync();
+
+                return new Tokens
+                {
+                    AccessToken = TokenManager.GenerateAccessToken(user),
+                    RefreshToken = refreshToken.jwt
+                };
+            }
+            else
+            {
+                throw new System.Exception("Refresh token incorrect");
+            }
+        }
+
+        //public void Update(string id, User userIn) =>
+        //    _context.Users.ReplaceOne(user => user.Id == id, userIn);
+
+        public void Update(int id, User userIn)
+        {
+            var user = _context.Users.Where(user => user.UserId == Convert.ToInt32(id));
+            //_context.Users.Update(userIn);
+            _context.Remove(user);
+            _context.Add(userIn);
+        }
+
+        public void Remove(User userIn)
+        {
+            var user = _context.Users.Where(user => user.UserId == userIn.UserId);
+            _context.Users.Remove((User)user);
+        }
+
+        public void Remove(int id)
+        {
+            var user = _context.Users.Where(user => user.UserId == id);
+            _context.Users.Remove((User)user);
+        }
+    }
+}
+

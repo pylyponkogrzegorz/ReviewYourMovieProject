@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace ReviewYourMovie.Server.Models
@@ -15,6 +16,7 @@ namespace ReviewYourMovie.Server.Models
             VoteReviews = new HashSet<VoteReview>();
         }
 
+        [Key]
         public int UserId { get; set; }
         public string Username { get; set; } = null!;
         public string Password { get; set; } = null!;

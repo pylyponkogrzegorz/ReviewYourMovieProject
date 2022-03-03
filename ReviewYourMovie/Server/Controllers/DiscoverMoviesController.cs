@@ -9,7 +9,6 @@ namespace ReviewYourMovie.Server.Controllers
     public class DiscoverMoviesController : Controller
     {
         private readonly string _requestUri = "https://api.themoviedb.org/3/";
-        private readonly string _apiKey = ApiHelper.apikey;
 
         //// GET: DiscoverMoviesController
         //[HttpGet]
@@ -32,7 +31,7 @@ namespace ReviewYourMovie.Server.Controllers
             var pageReq = pageRequest.ToString();
 
             var request = new HttpRequestMessage(HttpMethod.Get, 
-                $"{_requestUri}discover/movie?api_key={_apiKey}&page={pageReq}");
+                $"{_requestUri}discover/movie?api_key={ApiHelper.apikey}&page={pageReq}");
             var client = new HttpClient();
             HttpResponseMessage response = await client.SendAsync(request);
 
@@ -46,7 +45,7 @@ namespace ReviewYourMovie.Server.Controllers
         public async Task<ActionResult> SerachMovies([FromBody] string query)
         {
             var request = new HttpRequestMessage(HttpMethod.Get,
-                $"{_requestUri}search/movie?api_key={_apiKey}&query={query}");
+                $"{_requestUri}search/movie?api_key={ApiHelper.apikey}&query={query}");
             var client = new HttpClient();
             HttpResponseMessage response = await client.SendAsync(request);
 
@@ -65,7 +64,7 @@ namespace ReviewYourMovie.Server.Controllers
             var page = requestJson["page"];
 
             var request = new HttpRequestMessage(HttpMethod.Get,
-                $"{_requestUri}search/movie?api_key={_apiKey}&query={query}&page={page}");
+                $"{_requestUri}search/movie?api_key={ApiHelper.apikey}&query={query}&page={page}");
             var client = new HttpClient();
             HttpResponseMessage response = await client.SendAsync(request);
 

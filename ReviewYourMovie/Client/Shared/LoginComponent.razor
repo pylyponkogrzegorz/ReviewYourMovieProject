@@ -1,4 +1,5 @@
-﻿@using ReviewYourMovie.Shared.Models
+﻿@using Newtonsoft.Json.Linq
+@using ReviewYourMovie.Shared.Models
 @inject HttpClient Http
 @inject AuthenticationStateProvider AuthStateProvider
 @inject ILocalStorageService LocalStorage
@@ -35,12 +36,15 @@
 
 	private async void OnValidSubmit()
 	{
-		var result = await Http.PostAsJsonAsync("api/Authentication/login", user);
-		var token = await result.Content.ReadAsStringAsync();
+		var result = await Http.PostAsJsonAsync("api/Token/login", user);
+		var response = await result.Content.ReadAsStringAsync();
+
+		var token = JObject.Parse(response);
+		var value = token["value"].ToString();
 
 		if (result.IsSuccessStatusCode)
 		{
-			await LocalStorage.SetItemAsync("token", token);
+			await LocalStorage.SetItemAsync("token", value);
 			await AuthStateProvider.GetAuthenticationStateAsync();
 			await JSRuntime.InvokeVoidAsync("alert", "Logged succesfully");
 			Manager.NavigateTo("/");
