@@ -1,5 +1,7 @@
 ﻿@page "/MovieDetailsPage/{id}"
 @inject HttpClient Http
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Manager
 
 <h3>MovieDetailsPage</h3>
 
@@ -12,30 +14,54 @@
 else
 {
 	<div class="row">
-			<div class="col-sm-2">
-				<div class="card text-center" style="width: 16rem;">
-					<img src="@posterPath/@movie.Poster_path" class="card-img-top" alt="@movie.Title">
-					<div class="card-body">
-						<h5 class="card-title">@movie.Title</h5>
-						<h6 class="card-subtitle mb-2 text-muted">@movie.Release_date</h6>
-						<p class="card-text">@movie.Overview</p>
-					</div>
+		<div class="col-sm-2">
+			<div class="card text-center" style="width: 16rem;">
+				<img src="@posterPath/@movie.Poster_path" class="card-img-top" alt="@movie.Title">
+				<div class="card-body">
+					<h5 class="card-title">@movie.Title</h5>
+					<h6 class="card-subtitle mb-2 text-muted">@movie.Release_date</h6>
+					<p class="card-text">@movie.Overview</p>
 				</div>
 			</div>
+		</div>
 	</div>
 
+	<AuthorizeView>
+		<Authorized>
+			<span>You are logged in.</span>
 
+			<div class="row card col-lg-2 col-md-3 col-sm-4 justify-content-md-center">
+				<h4 class="card-header">Login</h4>
+				<div class="card-body">
+					<EditForm Context="movieReviewContext" Model="@movie" OnValidSubmit="OnValidSubmit">
+						<div class="form-group">
+							<label>Your Review</label>
+							<InputTextArea @bind-Value="review.ReviewDescription" class="form-control" />
+						</div>
+						<button class="btn btn-primary">Add review</button>
+					</EditForm>
+				</div>
+			</div>
+		</Authorized>
+		<NotAuthorized>
+			<span>Please log in to add review.</span>
+		</NotAuthorized>
+	</AuthorizeView>
 }
 
 @code {
 	[Parameter]
 	public string id { get; set; }
 
+	Review review = new();
+
 	private MovieDetails movie;
 
 	private string posterPath = "https://image.tmdb.org/t/p/original";
 
-	private static string requestUri = "https://localhost:44386/api/MovieDetails/id";
+	private string requestUri = "https://localhost:44386/api/MovieDetails/id";
+
+	private string reviewUri = "https://localhost:44386/api/MovieReview/add";
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -49,6 +75,24 @@ else
 		movie = await response.Content.ReadFromJsonAsync<MovieDetails>();
 
 		StateHasChanged();
+	}
+
+	private async void OnValidSubmit()
+	{
+		review.MovieId = movie.Id;
+
+		var result = await Http.PostAsJsonAsync(reviewUri, review);
+        var response = await result.Content.ReadAsStringAsync();
+
+        if (result.IsSuccessStatusCode)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", response);
+            Manager.NavigateTo("login");
+        }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("alert", response);
+        }
 	}
 
 }

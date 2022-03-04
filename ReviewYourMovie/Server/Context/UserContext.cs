@@ -59,7 +59,6 @@ namespace ReviewYourMovie.Server.Context
                 entity.ToTable("movie_review");
 
                 entity.Property(e => e.ReviewId)
-                    .ValueGeneratedNever()
                     .HasColumnName("review_id");
 
                 entity.Property(e => e.MovieId).HasColumnName("movie_id");

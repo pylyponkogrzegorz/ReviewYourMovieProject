@@ -17,7 +17,7 @@ namespace ReviewYourMovie.Server.Managers
                 .WithAlgorithm(new HMACSHA256Algorithm())
                 .WithSecret(Encoding.ASCII.GetBytes(_secret))
                 .AddClaim("exp", DateTimeOffset.UtcNow.AddMinutes(10).ToUnixTimeSeconds())
-                .AddClaim("Name", user.Username)
+                .AddClaim("username", user.Username)
                 .Issuer("ReviewYourMovie")
                 .Audience("access")
                 .Encode();
@@ -47,7 +47,7 @@ namespace ReviewYourMovie.Server.Managers
                 .WithSecret(_secret)
                 .AddClaim("exp", DateTimeOffset.UtcNow.AddHours(4).ToUnixTimeSeconds())
                 .AddClaim("refresh", randomString)
-                .AddClaim("Name", user.Username)
+                .AddClaim("username", user.Username)
                 .Issuer("ReviewYourMovie")
                 .Audience("access")
                 .Encode();

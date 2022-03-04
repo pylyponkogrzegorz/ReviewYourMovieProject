@@ -54,8 +54,8 @@ namespace ReviewYourMovie.Server.Controllers
         [HttpPut("refresh")]
         public IActionResult Refresh()
         {
-            Claim refreshtoken = User.Claims.FirstOrDefault(x => x.Type == "refresh");
-            Claim username = User.Claims.FirstOrDefault(x => x.Type == "username");
+            Claim? refreshtoken = User.Claims.FirstOrDefault(x => x.Type == "refresh");
+            Claim? username = User.Claims.FirstOrDefault(x => x.Type == "username");
 
             try
             {
@@ -66,5 +66,6 @@ namespace ReviewYourMovie.Server.Controllers
                 return BadRequest(e.Message);
             }
         }
+
     }
 }
