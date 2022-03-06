@@ -7,7 +7,7 @@
 @inject NavigationManager Manager
 
 
-<div class="card col-lg-2 col-md-3 col-sm-4 d-flex justify-content-center">
+<div class="card col-lg-3 col-md-4 col-sm-5">
 	<h4 class="card-header">Login</h4>
 	<div class="card-body">
 		<EditForm Model="@user" OnValidSubmit="OnValidSubmit">
@@ -47,7 +47,7 @@
 			await LocalStorage.SetItemAsync("token", value);
 			await AuthStateProvider.GetAuthenticationStateAsync();
 			await JSRuntime.InvokeVoidAsync("alert", "Logged succesfully");
-			Manager.NavigateTo("/");
+			//Manager.NavigateTo("/");
 		}
 		else
 		{

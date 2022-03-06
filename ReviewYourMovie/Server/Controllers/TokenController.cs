@@ -21,6 +21,20 @@ namespace ReviewYourMovie.Server.Controllers
             _userService = userService;
         }
 
+        // POST api/Token/username
+        [HttpPost("username")]
+        public async Task<ActionResult<string>> GetUsername([FromBody] int id)
+        {
+            try
+            {
+                return Ok(await _userService.GetUsername(id));
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e);
+            }
+        }
+
 
         // POST api/Token/register
         [HttpPost("register")]

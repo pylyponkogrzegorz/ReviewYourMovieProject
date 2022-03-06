@@ -12,6 +12,7 @@ using System.Text;
 using ReviewYourMovie.Server.Services;
 using Microsoft.Extensions.Options;
 using System.Text.Json.Serialization;
+using System.IdentityModel.Tokens.Jwt;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,36 +32,20 @@ builder.Services.AddSingleton<UserService>();
 
 builder.Services.AddDbContext<UserContext>(Options => Options.UseSqlServer("server=LAPTOP-ODHDV0AR;database=UsersDb;trusted_connection=true"));
 
-JwtBearerOptions options(JwtBearerOptions jwtBearerOptions, string audience)
-{
-    jwtBearerOptions.RequireHttpsMetadata = false;
-    jwtBearerOptions.SaveToken = true;
-    jwtBearerOptions.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes("SuperUltraExtraLongSuperSecret!")),
-        ValidIssuer = "ReviewYourMovie",
-        ValidateAudience = true,
-        ValidAudience = audience,
-        ValidateLifetime = true, //validate the expiration and not before values in the token
-        ClockSkew = TimeSpan.FromMinutes(1) //1 minute tolerance for the expiration date
-    };
-    if (audience == "access")
-    {
-        jwtBearerOptions.Events = new JwtBearerEvents
-        {
-            OnAuthenticationFailed = context =>
-            {
-                if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
-                {
-                    context.Response.Headers.Add("Token-Expired", "true");
-                }
-                return Task.CompletedTask;
-            }
-        };
-    }
-    return jwtBearerOptions;
-}
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+              .AddJwtBearer(options =>
+              {
+                  options.TokenValidationParameters = new TokenValidationParameters
+                  {
+                      ValidateIssuer = true,
+                      ValidateAudience = true,
+                      ValidateLifetime = true,
+                      ValidateIssuerSigningKey = true,
+                      ValidIssuer = "ReviewYourMovie",
+                      ValidAudience = "access",
+                      IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes("SuperUltraExtraLongSuperSecret!"))
+                  };
+              });
 
 var app = builder.Build();
 
@@ -88,6 +73,8 @@ app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
 app.UseCors(policy => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 

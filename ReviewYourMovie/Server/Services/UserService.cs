@@ -21,8 +21,16 @@ namespace ReviewYourMovie.Server.Services
         public List<User> Get() =>
             _context.Users.Where(user => true).ToList();
 
-        public User Get(string id) =>
-            _context.Users.FirstOrDefault<User>(user => user.UserId == Convert.ToInt32(id));
+        public User Get(int id) =>
+            _context.Users.FirstOrDefault<User>(user => user.UserId == id);
+
+        public async Task<string> GetUsername(int id)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync<User>(user => user.UserId == id);
+            //var user = await _context.Users.Where(user => user.UserId == id).FirstOrDefaultAsync();
+            return user.Username;
+
+        }
 
         public User Create(User user)
         {

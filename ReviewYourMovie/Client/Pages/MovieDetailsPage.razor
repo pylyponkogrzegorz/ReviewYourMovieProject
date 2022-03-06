@@ -1,9 +1,6 @@
 ﻿@page "/MovieDetailsPage/{id}"
 @inject HttpClient Http
-@inject IJSRuntime JSRuntime
 @inject NavigationManager Manager
-
-<h3>MovieDetailsPage</h3>
 
 @if (@movie == null)
 {
@@ -13,86 +10,209 @@
 }
 else
 {
-	<div class="row">
-		<div class="col-sm-2">
-			<div class="card text-center" style="width: 16rem;">
-				<img src="@posterPath/@movie.Poster_path" class="card-img-top" alt="@movie.Title">
+	<div class="card mb-3">
+		<div class="row g-0">
+			<div class="col-md-3">
+				<img src="@posterPath/@movie.Poster_path" class="img-fluid rounded-start" alt="@movie.Title">
+			</div>
+			<div class="col-md-9">
 				<div class="card-body">
-					<h5 class="card-title">@movie.Title</h5>
+					<h1 class="card-title text-xxl-start">@movie.Title</h1>
+					<p></p>
 					<h6 class="card-subtitle mb-2 text-muted">@movie.Release_date</h6>
+					<p></p>
 					<p class="card-text">@movie.Overview</p>
+					@foreach (var genre in movie.Genres)
+					{
+						<span class="text-muted">@genre.Name&nbsp;&nbsp; </span>
+					}
+					<p></p>
+					<p class="card-text">@movie.Budget $</p>
+					<p></p>
+					<a class="card-text" href="@movie.Homepage" target="_blank">@movie.Homepage</a>
+					<p></p>
+					<p class="card-text"><small class="text-muted">@movie.Runtime min</small></p>
+					<p>Average rating is: @averageRating</p>
+					<AuthorizeView>
+						<Authorized>
+							<div class="row card justify-content-md-center">
+								<h4 class="card-header">Add review</h4>
+								<div class="card-body">
+									<EditForm Context="movieReviewContext" Model="@movie" OnValidSubmit="OnValidSubmit">
+										<div class="form-group">
+											<label>Your Review</label>
+											<InputTextArea @bind-Value="review.ReviewDescription" class="form-control" />
+											<p></p>
+											<p>Your rating</p>
+											<select @bind="select" class="form-select">
+												<option selected value="10">1,00</option>
+												<option value="15">1,50</option>
+												<option value="20">2,00</option>
+												<option value="25">2,50</option>
+												<option value="30">3,00</option>
+												<option value="35">3,50</option>
+												<option value="40">4,00</option>
+												<option value="45">4,50</option>
+												<option value="50">5,00</option>
+											</select>
+										</div>
+										<button class="btn btn-primary">Add review</button>
+									</EditForm>
+								</div>
+							</div>
+						</Authorized>
+						<NotAuthorized>
+							<h3>Please, log in to add a review.</h3>
+							<div class="end-50">
+								<LoginComponent></LoginComponent>
+							</div>
+						</NotAuthorized>
+					</AuthorizeView>
 				</div>
 			</div>
 		</div>
 	</div>
 
-	<AuthorizeView>
-		<Authorized>
-			<span>You are logged in.</span>
 
-			<div class="row card col-lg-2 col-md-3 col-sm-4 justify-content-md-center">
-				<h4 class="card-header">Login</h4>
-				<div class="card-body">
-					<EditForm Context="movieReviewContext" Model="@movie" OnValidSubmit="OnValidSubmit">
-						<div class="form-group">
-							<label>Your Review</label>
-							<InputTextArea @bind-Value="review.ReviewDescription" class="form-control" />
-						</div>
-						<button class="btn btn-primary">Add review</button>
-					</EditForm>
-				</div>
-			</div>
-		</Authorized>
-		<NotAuthorized>
-			<span>Please log in to add review.</span>
-		</NotAuthorized>
-	</AuthorizeView>
+
+
+	@if (_toDisplay == null)
+	{
+		<p><em>No comments yet.</em></p>
+	}
+	else
+	{
+		<table class="table">
+			<thead>
+				<tr>
+					<th>Review Date</th>
+					<th>User</th>
+					<th>Review</th>
+					<th>Rating</th>
+				</tr>
+			</thead>
+			<tbody>
+				@foreach (var review in @_toDisplay)
+				{
+					<tr>
+						<td>@review.ReviewDatetime.ToString("dd/MM/yyyy HH:mm")</td>
+						<td>@review.Username</td>
+						<td>@review.ReviewDescription</td>
+						<td>@review.ReviewRating</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+		<div class="d-flex justify-content-center" style="margin-bottom: 10px;">
+			<button class="btn btn-outline-secondary" style="width: 250px;" @onclick="LoadMoreReviews">@_buttonMoreContent</button>
+		</div>
+	}
+
 }
 
 @code {
 	[Parameter]
 	public string id { get; set; }
+	private decimal select;
+
+	List<Review> _allReviews = new();
+	List<Review> _toDisplay = new();
 
 	Review review = new();
+	List<Review> reviews = new();
 
 	private MovieDetails movie;
+	private double averageRating;
+
+	string _buttonMoreContent = "Get more";
 
 	private string posterPath = "https://image.tmdb.org/t/p/original";
 
 	private string requestUri = "https://localhost:44386/api/MovieDetails/id";
 
-	private string reviewUri = "https://localhost:44386/api/MovieReview/add";
+	private string reviewUri = "https://localhost:44386/api/MovieReview/";
 
 	protected override async Task OnInitializedAsync()
 	{
-		ShowDetails();
+		await ShowDetails();
+		await GetAverage();
+		_allReviews = new();
+		await LoadMoreReviews();
 	}
 
-	public async void ShowDetails()
+	public async Task<string> ShowDetails()
 	{
 		var response = await Http.PostAsJsonAsync(requestUri, id);
 
 		movie = await response.Content.ReadFromJsonAsync<MovieDetails>();
 
 		StateHasChanged();
+		return null;
 	}
+
+	public async Task<string> GetAverage()
+	{
+		var response = await Http.PostAsJsonAsync("https://localhost:44386/api/MovieReview/average", id);
+
+		averageRating = await response.Content.ReadFromJsonAsync<double>();
+
+		StateHasChanged();
+		return null;
+	}
+
 
 	private async void OnValidSubmit()
 	{
 		review.MovieId = movie.Id;
+		review.ReviewRating = select/10;
 
-		var result = await Http.PostAsJsonAsync(reviewUri, review);
-        var response = await result.Content.ReadAsStringAsync();
+		var result = await Http.PostAsJsonAsync("https://localhost:44386/api/MovieReview/add", review);
+		var newReview = await result.Content.ReadFromJsonAsync<Review>();
 
-        if (result.IsSuccessStatusCode)
-        {
-            await JSRuntime.InvokeVoidAsync("alert", response);
-            Manager.NavigateTo("login");
-        }
-        else
-        {
-            await JSRuntime.InvokeVoidAsync("alert", response);
-        }
+		_toDisplay.Insert(0, newReview);
+
+		await GetAverage();
+
+		StateHasChanged();
 	}
+
+	private async Task<bool> LoadMoreReviews()
+	{
+		//DateTime lastDate;
+		Review reviewReq = new();
+
+		if (_allReviews.Count < 1)
+		{
+			//lastDate = DateTime.UtcNow;
+			reviewReq.MovieId = Convert.ToInt32(id);
+			reviewReq.ReviewDatetime = DateTime.UtcNow;
+		}
+		else
+		{
+			reviewReq.MovieId = Convert.ToInt32(id);
+			reviewReq.ReviewDatetime = _allReviews.Min(x => x.ReviewDatetime);
+		}
+
+		var reviewToAPI = JsonConvert.SerializeObject(reviewReq);
+
+		var data = await Http.PostAsJsonAsync(reviewUri + "getMore", reviewReq);
+		var dateResult = await data.Content.ReadAsStringAsync();
+
+		if (dateResult == null) { _buttonMoreContent = "Can't reach the server"; return false; }
+
+		var _tempList = JsonConvert.DeserializeObject<List<Review>>(dateResult).OrderByDescending(x => x.ReviewDatetime).ToList();
+
+		if (_tempList.Count < 1) { _buttonMoreContent = "There are no more comments"; return true; }
+
+		List<Review> reviews = new();
+
+		reviews.AddRange(_tempList);
+		reviews.ForEach(x => _toDisplay.Add(x));
+		_allReviews.AddRange(reviews);
+
+		_buttonMoreContent = "Get more";
+		return true;
+	}
+
 
 }

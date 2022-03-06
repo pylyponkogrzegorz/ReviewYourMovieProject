@@ -1,7 +1,5 @@
 ﻿using JWT.Algorithms;
 using JWT.Builder;
-using Microsoft.AspNetCore.DataProtection;
-using ReviewYourMovie.Server.Models;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -18,6 +16,7 @@ namespace ReviewYourMovie.Server.Managers
                 .WithSecret(Encoding.ASCII.GetBytes(_secret))
                 .AddClaim("exp", DateTimeOffset.UtcNow.AddMinutes(10).ToUnixTimeSeconds())
                 .AddClaim("username", user.Username)
+                .AddClaim("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name", user.Username)
                 .Issuer("ReviewYourMovie")
                 .Audience("access")
                 .Encode();
