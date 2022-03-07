@@ -154,7 +154,15 @@ else
 	{
 		var response = await Http.PostAsJsonAsync("https://localhost:44386/api/MovieReview/average", id);
 
-		averageRating = await response.Content.ReadFromJsonAsync<double>();
+
+		if (response.IsSuccessStatusCode)
+		{
+			averageRating = await response.Content.ReadFromJsonAsync<double>();
+		}
+		else
+		{
+			averageRating = 0.00;
+		}
 
 		StateHasChanged();
 		return null;
@@ -164,7 +172,7 @@ else
 	private async void OnValidSubmit()
 	{
 		review.MovieId = movie.Id;
-		review.ReviewRating = select/10;
+		review.ReviewRating = select / 10;
 
 		var result = await Http.PostAsJsonAsync("https://localhost:44386/api/MovieReview/add", review);
 		var newReview = await result.Content.ReadFromJsonAsync<Review>();

@@ -13,7 +13,7 @@ namespace ReviewYourMovie.Server.Controllers
     public class MovieReviewController : ControllerBase
     {
         private readonly UserContext _context;
-
+        
         public MovieReviewController(UserContext context)
         {
             _context = context;
