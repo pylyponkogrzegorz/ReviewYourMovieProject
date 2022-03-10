@@ -10,9 +10,9 @@ namespace ReviewYourMovie.Server.Controllers
         private readonly string _requestUri = "https://api.themoviedb.org/3/";
 
 
-        // POST: api/DiscoverMoviesController/page
+        // POST: api/DiscoverMoviesController/id
         [HttpPost("id")]
-        public async Task<ActionResult> PostPage( [FromBody] int movieId)
+        public async Task<ActionResult> GetMovieDetails( [FromBody] int movieId)
         {
             //var page = HttpContext.Request.Form["Page"];
             var id = movieId.ToString();

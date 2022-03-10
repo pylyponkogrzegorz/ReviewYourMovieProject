@@ -72,11 +72,11 @@ namespace ReviewYourMovie.Server.Services
 
         }
 
-        public async Task<ActionResult<string>> Login(UserLoginDto authentication)
+        public async Task<ActionResult<string>> Login(UserLoginDto auth)
         {
-            var user = await _context.Users.FirstOrDefaultAsync<User>(u => u.Username == authentication.Username);
+            var user = await _context.Users.FirstOrDefaultAsync<User>(u => u.Username == auth.Username);
 
-            bool validPassword = BCrypt.Net.BCrypt.Verify(authentication.Password, user.Password);
+            bool validPassword = BCrypt.Net.BCrypt.Verify(auth.Password, user.Password);
 
             if (validPassword)
             {
@@ -91,12 +91,6 @@ namespace ReviewYourMovie.Server.Services
                 var token = TokenManager.GenerateAccessToken(user);
 
                 return token;
-
-                //return new Tokens
-                //{
-                //    AccessToken = TokenManager.GenerateAccessToken(user),
-                //    RefreshToken = refreshToken.jwt
-                //};
             }
             else
             {

@@ -10,42 +10,15 @@ namespace ReviewYourMovie.Server.Controllers
     {
         private readonly string _requestUri = "https://api.themoviedb.org/3/";
 
-        //// GET: DiscoverMoviesController
-        //[HttpGet]
-        //public async Task<ActionResult<DiscoverMovie>> Index()
-        //{
-        //    var request = new HttpRequestMessage(HttpMethod.Get, $"{_requestUri}discover/movie?api_key={_apiKey}");
-        //    var client = new HttpClient();
-        //    HttpResponseMessage response = await client.SendAsync(request);
-
-        //    var json = await response.Content.ReadAsStringAsync();
-
-        //    return Ok(json);
-        //}
-
         // POST: api/DiscoverMoviesController/page
         [HttpPost("page")]
-        public async Task<ActionResult> PostPage( [FromBody] int pageRequest)
+        public async Task<ActionResult> PostPage([FromBody] int pageRequest)
         {
             //var page = HttpContext.Request.Form["Page"];
             var pageReq = pageRequest.ToString();
 
             var request = new HttpRequestMessage(HttpMethod.Get, 
                 $"{_requestUri}discover/movie?api_key={ApiHelper.apikey}&page={pageReq}");
-            var client = new HttpClient();
-            HttpResponseMessage response = await client.SendAsync(request);
-
-            var json = await response.Content.ReadAsStringAsync();
-
-            return Ok(json);
-        }
-
-        // POST: api/DiscoverMoviesController/query
-        [HttpPost("query")]
-        public async Task<ActionResult> SerachMovies([FromBody] string query)
-        {
-            var request = new HttpRequestMessage(HttpMethod.Get,
-                $"{_requestUri}search/movie?api_key={ApiHelper.apikey}&query={query}");
             var client = new HttpClient();
             HttpResponseMessage response = await client.SendAsync(request);
 
