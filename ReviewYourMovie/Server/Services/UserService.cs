@@ -27,7 +27,6 @@ namespace ReviewYourMovie.Server.Services
         public async Task<string> GetUsername(int id)
         {
             var user = await _context.Users.FirstOrDefaultAsync<User>(user => user.UserId == id);
-            //var user = await _context.Users.Where(user => user.UserId == id).FirstOrDefaultAsync();
             return user.Username;
 
         }
@@ -59,7 +58,7 @@ namespace ReviewYourMovie.Server.Services
 
             if (userFromDb != null)
             {
-                throw new System.Exception("Username is taken");
+                return "Username is Taken";
             }
 
             userToDb.RegisterComplete = true;
@@ -129,13 +128,9 @@ namespace ReviewYourMovie.Server.Services
             }
         }
 
-        //public void Update(string id, User userIn) =>
-        //    _context.Users.ReplaceOne(user => user.Id == id, userIn);
-
         public void Update(int id, User userIn)
         {
             var user = _context.Users.Where(user => user.UserId == Convert.ToInt32(id));
-            //_context.Users.Update(userIn);
             _context.Remove(user);
             _context.Add(userIn);
         }

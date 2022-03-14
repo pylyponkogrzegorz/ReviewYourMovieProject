@@ -42,7 +42,7 @@ else
 	</div>
 	<p></p><p></p><p></p>
 
-	<div class="btn-group d-grid gap-2 d-md-flex justify-content-md-center" role="group" aria-label="Basic example">
+	<div class="btn-group d-grid gap-2 d-md-flex justify-content-md-center" role="group">
 		<div><button disabled=@IsPageNotToLow @onclick="Previous" type="button" class="btn btn-primary btn-lg">Previous</button></div>
 		<div><button type="button" class="btn btn-primary btn-lg">@pageRequest</button></div>
 		<div><button disabled=@IsPageNotToHigh @onclick="Next" type="button" class="btn btn-primary btn-lg">Next</button></div>
@@ -71,13 +71,12 @@ else
 	{
 		if (!string.IsNullOrEmpty(query))
 		{
-			GetMovies(ev, query);
+			GetMovies();
 		}
 		else
 		{
 			DiscoverMovies();
 		}
-
 	}
 
 
@@ -129,8 +128,6 @@ else
 	private void GetMovieDetails(MouseEventArgs e, int id)
 	{
 		Manager.NavigateTo($"MovieDetailsPage/{id}");
-		//MovieDetailsPage details = new();
-		//details.GetId(id);
 	}
 
 	private async void DiscoverMovies()
@@ -142,13 +139,14 @@ else
 		if (movies?.Results == null)
 		{
 			await JSRuntime.InvokeVoidAsync("alert", movies);
+			return;
 		}
 
 		SetButtonsState();
 		StateHasChanged();
 	}
 
-	private async void GetMovies(MouseEventArgs e, string query)
+	private async void GetMovies()
 	{
 		var pageReq = pageRequest.ToString();
 
@@ -165,8 +163,10 @@ else
 		if (movies?.Results == null)
 		{
 			await JSRuntime.InvokeVoidAsync("alert", movies);
+			return;
 		}
 
+		SetButtonsState();
 		StateHasChanged();
 	}
 

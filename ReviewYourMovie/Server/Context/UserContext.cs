@@ -161,11 +161,6 @@ namespace ReviewYourMovie.Server.Context
             modelBuilder.Entity<User>(entity =>
             {
                 entity.ToTable("users");
-
-                //entity.Property(e => e.UserId)
-                //    .ValueGeneratedNever()
-                //    .UseIdentityColumn(1,1)
-                //    .HasColumnName("user_id");
                 
                 entity.Property(e => e.UserId)
                     .HasColumnName("user_id");

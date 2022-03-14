@@ -33,45 +33,47 @@ else
 					<p></p>
 					<p class="card-text"><small class="text-muted">@movie.Runtime min</small></p>
 					<p>Average rating is: @averageRating</p>
-					<AuthorizeView>
-						<Authorized>
-							<div class="row card justify-content-md-center">
-								<h4 class="card-header">Add review</h4>
-								<div class="card-body">
-									<EditForm Context="movieReviewContext" Model="@movie" OnValidSubmit="OnValidSubmit">
-										<div class="form-group">
-											<label>Your Review</label>
-											<InputTextArea @bind-Value="review.ReviewDescription" class="form-control" />
-											<p></p>
-											<p>Your rating</p>
-											<select @bind="select" class="form-select">
-												<option selected value="10">1,00</option>
-												<option value="15">1,50</option>
-												<option value="20">2,00</option>
-												<option value="25">2,50</option>
-												<option value="30">3,00</option>
-												<option value="35">3,50</option>
-												<option value="40">4,00</option>
-												<option value="45">4,50</option>
-												<option value="50">5,00</option>
-											</select>
-										</div>
-										<button class="btn btn-primary">Add review</button>
-									</EditForm>
-								</div>
-							</div>
-						</Authorized>
-						<NotAuthorized>
-							<h3>Please, log in to add a review.</h3>
-							<div class="end-50">
-								<Login></Login>
-							</div>
-						</NotAuthorized>
-					</AuthorizeView>
+
 				</div>
 			</div>
+
 		</div>
 	</div>
+	<AuthorizeView>
+		<Authorized>
+			<div class="row card justify-content-md-center">
+				<h4 class="card-header">Add review</h4>
+				<div class="card-body">
+					<EditForm Context="movieReviewContext" Model="@movie" OnValidSubmit="OnValidSubmit">
+						<div class="form-group">
+							<label>Your Review</label>
+							<InputTextArea @bind-Value="review.ReviewDescription" class="form-control" />
+							<p></p>
+							<p>Your rating</p>
+							<select @bind="select" class="form-select" >
+								<option value="10">1.00</option>
+								<option value="15">1.50</option>
+								<option value="20">2.00</option>
+								<option value="25">2.50</option>
+								<option value="30">3.00</option>
+								<option value="35">3.50</option>
+								<option value="40">4.00</option>
+								<option value="45">4.50</option>
+								<option value="50">5.00</option>
+							</select>
+						</div>
+						<button class="btn btn-primary">Add review</button>
+					</EditForm>
+				</div>
+			</div>
+		</Authorized>
+		<NotAuthorized>
+			<h3>Please, log in to add a review.</h3>
+			<div class="card col-lg-3 col-md-4 col-sm-5">
+				<Login></Login>
+			</div>
+		</NotAuthorized>
+	</AuthorizeView>
 
 
 
@@ -113,7 +115,7 @@ else
 @code {
 	[Parameter]
 	public string id { get; set; }
-	private decimal select;
+	private decimal select = 50;
 
 	List<Review> _allReviews = new();
 	List<Review> _toDisplay = new();
@@ -186,12 +188,10 @@ else
 
 	private async Task<bool> LoadMoreReviews()
 	{
-		//DateTime lastDate;
 		Review reviewReq = new();
 
 		if (_allReviews.Count < 1)
 		{
-			//lastDate = DateTime.UtcNow;
 			reviewReq.MovieId = Convert.ToInt32(id);
 			reviewReq.ReviewDatetime = DateTime.UtcNow;
 		}

@@ -1,6 +1,7 @@
 ﻿@page "/register"
 @inject IJSRuntime JSRuntime
 @inject NavigationManager Manager
+@using Newtonsoft.Json.Linq
 @using ReviewYourMovie.Shared.Models
 @inject HttpClient Http
 @inject AuthenticationStateProvider AuthStateProvider
@@ -41,9 +42,12 @@
         var result = await Http.PostAsJsonAsync("https://localhost:44386/api/Token/register", user);
         var response = await result.Content.ReadAsStringAsync();
 
+        var error = JObject.Parse(response);
+		var value = error["value"].ToString();
+
         if (result.IsSuccessStatusCode)
         {
-            await JSRuntime.InvokeVoidAsync("alert", response);
+            await JSRuntime.InvokeVoidAsync("alert", value);
             Manager.NavigateTo("login");
         }
         else

@@ -14,7 +14,6 @@ namespace ReviewYourMovie.Server.Controllers
         [HttpPost("id")]
         public async Task<ActionResult> GetMovieDetails( [FromBody] int movieId)
         {
-            //var page = HttpContext.Request.Form["Page"];
             var id = movieId.ToString();
 
             var request = new HttpRequestMessage(HttpMethod.Get,
