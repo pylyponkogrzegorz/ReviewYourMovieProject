@@ -30,7 +30,7 @@ builder.Services.AddSingleton<UserContext>(sp => sp.GetRequiredService<IOptions<
 
 builder.Services.AddSingleton<UserService>();
 
-builder.Services.AddDbContext<UserContext>(Options => Options.UseSqlServer("server=LAPTOP-ODHDV0AR;database=UsersDb;trusted_connection=true"));
+builder.Services.AddDbContext<UserContext>(Options => Options.UseSqlServer("server=LAPTOP-ODHDV0AR;database=UsersDb;User ID=admin;Password=zaq1@WSXcde3;"));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
               .AddJwtBearer(options =>
@@ -84,7 +84,5 @@ app.UseAuthorization();
 app.MapRazorPages();
 app.MapControllers();
 app.MapFallbackToFile("index.html");
-
-
 
 app.Run();

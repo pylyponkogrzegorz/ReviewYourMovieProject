@@ -130,9 +130,9 @@ else
 
 	private string posterPath = "https://image.tmdb.org/t/p/original";
 
-	private string requestUri = "https://localhost:44386/api/MovieDetails/id";
+	private string requestUri = "api/MovieDetails/id";
 
-	private string reviewUri = "https://localhost:44386/api/MovieReview/";
+	private string reviewUri = "api/MovieReview/";
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -154,7 +154,7 @@ else
 
 	public async Task<string> GetAverage()
 	{
-		var response = await Http.PostAsJsonAsync("https://localhost:44386/api/MovieReview/average", id);
+		var response = await Http.PostAsJsonAsync("api/MovieReview/average", id);
 
 
 		if (response.IsSuccessStatusCode)
@@ -176,7 +176,7 @@ else
 		review.MovieId = movie.Id;
 		review.ReviewRating = select / 10;
 
-		var result = await Http.PostAsJsonAsync("https://localhost:44386/api/MovieReview/add", review);
+		var result = await Http.PostAsJsonAsync("api/MovieReview/add", review);
 		var newReview = await result.Content.ReadFromJsonAsync<Review>();
 
 		_toDisplay.Insert(0, newReview);
